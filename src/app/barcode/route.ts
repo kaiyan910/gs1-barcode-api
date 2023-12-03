@@ -25,17 +25,20 @@ export async function GET(request: NextRequest) {
     langid: "zh_TW",
   };
 
-  const json = JSON.stringify(queryParams);
+  const json = encodeURIComponent(JSON.stringify(queryParams));
+  console.log(`[QP] ${json}`);
 
   const res = await fetch(
     `https://www.barcodeplus.com.hk/eid/resource/jsonservice?data=${json}`,
     { cache: "force-cache" }
   );
-  const data = (await res.json()) as BarcodeResponse;
+  const resData = await res.json();
+  console.log(`[RD] ${JSON.stringify(resData)}`);
+  const data = resData as BarcodeResponse;
 
   if (data.result[0].data.length == 0) {
     return NextResponse.json(
-      { message: `barcode ${q} is not found` },
+      { message: `${q} is not found` },
       {
         status: 404,
       }
