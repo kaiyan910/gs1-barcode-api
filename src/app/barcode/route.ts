@@ -1,6 +1,5 @@
+import domExtract from "@/helper/dom.helper";
 import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "edge";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -28,22 +27,42 @@ export async function GET(request: NextRequest) {
   const json = encodeURIComponent(JSON.stringify(queryParams));
   console.log(`[QP] ${json}`);
 
-  const res = await fetch(
+  const barcodePlusResponse = await fetch(
     `https://www.barcodeplus.com.hk/eid/resource/jsonservice?data=${json}`,
     { cache: "force-cache" }
   );
-  const resData = await res.json();
+  const resData = await barcodePlusResponse.json();
   console.log(`[RD] ${JSON.stringify(resData)}`);
   const data = resData as BarcodeResponse;
 
   if (data.result[0].data.length == 0) {
-    return NextResponse.json(
-      { message: `${q} is not found` },
+    const barcodelookupResponse = await fetch(
+      `https://www.barcodelookup.com/${q}`,
       {
-        status: 404,
+        cache: "force-cache",
       }
     );
+
+    const rawData = await barcodelookupResponse.text();
+    const domData = domExtract(rawData);
+
+    if (domData) {
+      return NextResponse.json(domData);
+    } else {
+      return NextResponse.json(
+        { message: `${q} is not found` },
+        {
+          status: 404,
+        }
+      );
+    }
   }
 
-  return NextResponse.json(data.result[0].data[0]);
+  return NextResponse.json({
+    name: data.result[0].data[0].pdname,
+    company: data.result[0].data[0].cmpyname,
+    image: data.result[0].data[0].imgfile
+      ? `https://www.barcodeplus.com.hk/eid/resource/libx/dfile/gtin:${data.result[0].data[0].imgfile}`
+      : null,
+  });
 }
