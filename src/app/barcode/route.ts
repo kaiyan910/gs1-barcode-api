@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     );
 
     const rawData = await barcodelookupResponse.text();
+    console.log(`[RD] ${rawData}`);
     const domData = domExtract(rawData);
 
     if (domData) {
