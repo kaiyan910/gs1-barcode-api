@@ -1,4 +1,5 @@
 import domExtract from "@/helper/dom.helper";
+import { kv } from "@vercel/kv";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -45,11 +46,9 @@ export async function GET(request: NextRequest) {
 
     const rawData = await barcodelookupResponse.text();
 
-    return new NextResponse(rawData, {
-      headers: { "content-type": "text/html" },
-    });
+    await kv.set("html", rawData);
 
-    /*const domData = domExtract(rawData);
+    const domData = domExtract(rawData);
 
     if (domData) {
       return NextResponse.json(domData);
@@ -60,7 +59,7 @@ export async function GET(request: NextRequest) {
           status: 404,
         }
       );
-    }*/
+    }
   }
 
   return NextResponse.json({
