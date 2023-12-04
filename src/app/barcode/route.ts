@@ -44,7 +44,12 @@ export async function GET(request: NextRequest) {
     );
 
     const rawData = await barcodelookupResponse.text();
-    const domData = domExtract(rawData);
+
+    return new NextResponse(rawData, {
+      headers: { "content-type": "text/html" },
+    });
+
+    /*const domData = domExtract(rawData);
 
     if (domData) {
       return NextResponse.json(domData);
@@ -55,7 +60,7 @@ export async function GET(request: NextRequest) {
           status: 404,
         }
       );
-    }
+    }*/
   }
 
   return NextResponse.json({
